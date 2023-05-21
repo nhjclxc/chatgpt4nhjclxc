@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- 级别从高到低 OFF 、 FATAL 、 ERROR 、 WARN 、 INFO 、 DEBUG 、 TRACE 、 ALL -->
+<!-- 日志输出规则 根据当前ROOT 级别，日志输出时，级别高于root默认的级别时 会输出 -->
+<!-- 以下 每个配置的 filter 是过滤掉输出文件里面，会出现高级别文件，依然出现低级别的日志信息，通过filter 过滤只记录本级别的日志 -->
+<!-- scan 当此属性设置为true时，配置文件如果发生改变，将会被重新加载，默认值为true。 -->
+<!-- scanPeriod 设置监测配置文件是否有修改的时间间隔，如果没有给出时间单位，默认单位是毫秒。当scan为true时，此属性生效。默认的时间间隔为1分钟。 -->
+<!-- debug 当此属性设置为true时，将打印出logback内部日志信息，实时查看logback运行状态。默认值为false。 -->
+<configuration scan="true" scanPeriod="10 seconds" debug="false">
+
+	<!-- 动态日志级别 -->
+	<jmxConfigurator/>
+
+	<!-- 定义日志文件 输出位置 -->
+	<property name="LOG_PATH" value="${user.home}/logs/chatgpt4nhjclxc"/>
+
+	<!-- 日志最大的历史 30天 -->
+	<property name="LOG_MAX_HISTORY" value="30"/>
+
+	<property name="LOG_LEVEL" value="info"/>
+
+	<!--日志文件最大占用量-->
+	<property name="MAX_SIZE" value="300mb" />
+
+	<!--业务日志输出格式-->
+	<property name="SERVICE_OUTPUT_PATTERN"
+			  value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{INNER_TRACE_ID}] %-5level %logger{56} - %msg%n" />
+
+	<!--SQL监控日志输出格式-->
+	<property name="SQL_OUTPUT_PATTERN"
+			  value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{INNER_TRACE_ID}] %-5level %logger{56} - %msg%n" />
+
+	<!-- ConsoleAppender 控制台输出日志 -->
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>
+				<!-- 设置日志输出格式 -->
+				${SERVICE_OUTPUT_PATTERN}
+			</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<!-- 过滤掉临界点LOG_LEVEL级别之前的日志 -->
+			<!-- 设置控制台输出所有日志-->
+			<level>DEBUG</level>
+		</filter>
+	</appender>
+
+	<!-- ERROR级别日志 -->
+	<!-- 滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件 RollingFileAppender -->
+	<appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${LOG_PATH}/chatgpt4nhjclxc_error.log</File>
+		<!-- 过滤器，只记录WARN级别的日志 -->
+		<!-- 果日志级别等于配置级别，过滤器会根据onMath 和 onMismatch接收或拒绝日志。 -->
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<!-- 设置过滤级别 -->
+			<level>ERROR</level>
+			<!-- 用于配置符合过滤条件的操作 -->
+			<onMatch>ACCEPT</onMatch>
+			<!-- 用于配置不符合过滤条件的操作 -->
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<!-- 最常用的滚动策略，它根据时间来制定滚动策略.既负责滚动也负责触发滚动 -->
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/ERROR-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<maxHistory>${LOG_MAX_HISTORY}</maxHistory>
+			<maxFileSize>${MAX_SIZE}</maxFileSize>
+		</rollingPolicy>
+		<encoder>
+			<pattern>
+				<!-- 设置日志输出格式 -->
+				${SERVICE_OUTPUT_PATTERN}
+			</pattern>
+		</encoder>
+	</appender>
+
+	<!-- WARN级别日志 appender -->
+	<appender name="WARN" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${LOG_PATH}/chatgpt4nhjclxc_warn.log</File>
+		<!-- 过滤器，只记录WARN级别的日志 -->
+		<!-- 果日志级别等于配置级别，过滤器会根据onMath 和 onMismatch接收或拒绝日志。 -->
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<!-- 设置过滤级别 -->
+			<level>WARN</level>
+			<!-- 用于配置符合过滤条件的操作 -->
+			<onMatch>ACCEPT</onMatch>
+			<!-- 用于配置不符合过滤条件的操作 -->
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/WARN-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<maxHistory>${LOG_MAX_HISTORY}</maxHistory>
+			<maxFileSize>${MAX_SIZE}</maxFileSize>
+		</rollingPolicy>
+		<encoder>
+			<pattern>${SERVICE_OUTPUT_PATTERN}</pattern>
+		</encoder>
+	</appender>
+
+	<!-- INFO级别日志 appender -->
+	<appender name="INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${LOG_PATH}/chatgpt4nhjclxc_info.log</File>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>INFO</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/INFO-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<maxHistory>${LOG_MAX_HISTORY}</maxHistory>
+			<maxFileSize>${MAX_SIZE}</maxFileSize>
+		</rollingPolicy>
+		<encoder>
+			<pattern>${SERVICE_OUTPUT_PATTERN}</pattern>
+		</encoder>
+	</appender>
+
+	<!-- DEBUG级别日志 appender -->
+	<appender name="DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${LOG_PATH}/chatgpt4nhjclxc_debug.log</File>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>DEBUG</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/DEBUG-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<maxHistory>${LOG_MAX_HISTORY}</maxHistory>
+			<maxFileSize>${MAX_SIZE}</maxFileSize>
+		</rollingPolicy>
+		<encoder>
+			<pattern>${SERVICE_OUTPUT_PATTERN}</pattern>
+		</encoder>
+	</appender>
+	<appender name="SQL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${LOG_PATH}/sql.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/sql-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<maxHistory>${LOG_MAX_HISTORY}</maxHistory>
+			<maxFileSize>${MAX_SIZE}</maxFileSize>
+		</rollingPolicy>
+		<encoder>
+			<pattern>${SQL_OUTPUT_PATTERN}</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<!-- 过滤掉临界点LOG_LEVEL级别之前的日志 -->
+			<level>DEBUG</level>
+		</filter>
+	</appender>
+	<!-- TRACE级别日志 appender -->
+	<appender name="TRACE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${LOG_PATH}/chatgpt4nhjclxc_trace.log</File>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>TRACE</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/TRACE-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<maxHistory>${LOG_MAX_HISTORY}</maxHistory>
+			<maxFileSize>${MAX_SIZE}</maxFileSize>
+		</rollingPolicy>
+		<encoder>
+			<pattern>${SERVICE_OUTPUT_PATTERN}</pattern>
+		</encoder>
+	</appender>
+
+
+	<logger name="java.sql.Connection" additivity="false" level="OFF">
+		<appender-ref ref="CONSOLE" />
+	</logger>
+	<logger name="java.sql.Statement" additivity="false" level="OFF">
+		<appender-ref ref="CONSOLE" />
+	</logger>
+	<logger name="java.sql.PreparedStatement" additivity="false" level="OFF">
+		<appender-ref ref="CONSOLE" />
+	</logger>
+	<logger name="com.nhjclxc.chatgpt4nhjclxc" level="debug" additivity="false" >
+		<appender-ref ref="CONSOLE"/>
+		<appender-ref ref="ERROR"/>
+		<appender-ref ref="INFO"/>
+		<appender-ref ref="WARN"/>
+		<appender-ref ref="DEBUG"/>
+	</logger>
+	<!-- root级别 info <appender-ref ref="CONSOLE"/> -->
+	<root level="${LOG_LEVEL}">
+		<appender-ref ref="CONSOLE"/>
+		<appender-ref ref="ERROR"/>
+		<appender-ref ref="INFO"/>
+		<appender-ref ref="WARN"/>
+		<appender-ref ref="DEBUG"/>
+		<appender-ref ref="TRACE" />
+	</root>
+</configuration>
