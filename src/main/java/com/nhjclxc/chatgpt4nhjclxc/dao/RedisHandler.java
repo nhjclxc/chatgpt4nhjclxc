@@ -3,6 +3,7 @@ package com.nhjclxc.chatgpt4nhjclxc.dao;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.nhjclxc.chatgpt4nhjclxc.config.ApplicationConst;
+import com.nhjclxc.chatgpt4nhjclxc.config.ContextHolder;
 import com.nhjclxc.chatgpt4nhjclxc.exception.ProjectException;
 import com.nhjclxc.chatgpt4nhjclxc.model.gpt.ChatGPTMessage;
 import com.nhjclxc.chatgpt4nhjclxc.model.model.TbUser;
@@ -13,6 +14,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author LuoXianchao
@@ -31,8 +33,24 @@ public class RedisHandler {
         stringRedisTemplate.opsForValue().set(key, value);
     }
 
+    public void setStringValue(String key, String value, long expire, TimeUnit unit) {
+        stringRedisTemplate.opsForValue().set(key, value, expire, unit);
+    }
+
     public String getStringValue(String key) {
         return stringRedisTemplate.opsForValue().get(key);
+    }
+
+    public void setListValue(String key, String value) {
+        stringRedisTemplate.opsForList().leftPush(key, value);
+    }
+
+    public List<String> getListValue(String key) {
+         return getListValue(key, 0, -1);
+    }
+
+    public List<String> getListValue(String key, long strat, long end ) {
+         return stringRedisTemplate.opsForList().range(key, strat, end);
     }
 
     /**
@@ -153,5 +171,9 @@ public class RedisHandler {
         Map<String, List<ChatGPTMessage>> map = (Map<String, List<ChatGPTMessage>>) JSON.parseObject(s, Map.class);
         System.out.println(map);
         return map;
+    }
+
+    public String getSessionValue(String phone) {
+        return stringRedisTemplate.opsForValue().get(ApplicationConst.USER_SESSION_PREFIX + phone);
     }
 }

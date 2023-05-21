@@ -27,7 +27,6 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Timeout;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -94,6 +93,13 @@ public class ChatService {
      * @return
      */
     public Object login(String phone, HttpServletResponse response) {
+
+        // 黑名单用户直接抛异常
+        List<String> blackListValue = redisHandler.getListValue(ApplicationConst.USER_LIST_BLACK);
+        if (blackListValue.contains(phone)){
+            throw new ProjectException(ReturnCodeEnum.USER_BLACK);
+        }
+
         Map<String, Object> info = new HashMap<>();
         info.put("phone", phone);
         String token = JWTUtils.getToken(info);

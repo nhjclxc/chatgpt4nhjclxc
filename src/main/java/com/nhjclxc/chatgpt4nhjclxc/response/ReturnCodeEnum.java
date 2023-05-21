@@ -14,7 +14,13 @@ public class ReturnCodeEnum {
 
     public static final ReturnCode DEFAULT_SECURITY_CHECK_ERROR = new ReturnCode("10001", "非法请求，{0}");
 
-    public static final ReturnCode NOTR_EQUIRE_TOKEN = new ReturnCode("10002", "缺少请求token");
+    public static final ReturnCode NOT_REQUIRED_TOKEN = new ReturnCode("10002", "缺少请求token");
+    
+    public static final ReturnCode NOT_REQUIRED_SESSION_DATA = new ReturnCode("10003", "没有被要求会话数据");
+
+    public static final ReturnCode USER_BLACK = new ReturnCode("10004", "该账号已被禁止访问，请联系管理员解除！");
+
+    public static final ReturnCode REQUEST_LIMIT = new ReturnCode("10005", "今日请求已上限，明天再来哦！");
 
     /**
      * 业务异常

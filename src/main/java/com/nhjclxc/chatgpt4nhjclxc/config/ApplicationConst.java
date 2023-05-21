@@ -20,6 +20,14 @@ public class ApplicationConst {
 
     public static final String CHATGPT_RECORD_HASH_PREFIX = "CHATGPT:RECORD:HASH:";
 
+    public static final String USER_LIST_WHITE = "USER:LIST:WHITE";
+
+    public static final String USER_LIST_BLACK = "USER:LIST:BLACK";
+
+    public static final String REQUEST_LIMIT_PREFIX = "REQUEST:LIMIT:PREFIX:";
+
+    public static final Integer REQUEST_LIMIT_TIMES = 3;
+
     public interface CHATGPT{
         String MODEL = "gpt-3.5-turbo";
 
@@ -41,4 +49,6 @@ public class ApplicationConst {
          */
         String ADDRESS = "https://api.openai-proxy.com/v1/chat/completions";
     }
+
+
 }

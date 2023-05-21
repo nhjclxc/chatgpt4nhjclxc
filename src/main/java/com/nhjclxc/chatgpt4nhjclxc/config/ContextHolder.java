@@ -14,7 +14,7 @@ public class ContextHolder {
 	// 想存放到ThreadLoacl里面的数据的类型
 	private static final ThreadLocal<TbUser> tbUser = new ThreadLocal<>();
 
-	public static void setUserId(TbUser user) {
+	public static void setUser(TbUser user) {
 		tbUser.set(user);
 	}
 
