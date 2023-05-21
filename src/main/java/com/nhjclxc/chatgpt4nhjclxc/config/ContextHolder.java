@@ -1,7 +1,7 @@
 package com.nhjclxc.chatgpt4nhjclxc.config;
 
 
-import com.nhjclxc.chatgpt4nhjclxc.model.TbUser;
+import com.nhjclxc.chatgpt4nhjclxc.model.model.TbUser;
 
 /**
  * 当前请求上下文对象

@@ -25,8 +25,8 @@ public class InterceptorConfig extends WebMvcConfigurationSupport {
     protected void addInterceptors(InterceptorRegistry registry) {
         // 把刚刚写的拦截器类对象传进去    //添加拦截器的路径
         registry.addInterceptor(requestInterceptor)
-                .addPathPatterns("/**");                  //拦截所有请求
-                 // .excludePathPatterns("/swagger-ui.html");//不拦截登录的请求
+                .addPathPatterns("/**")                  //拦截的请求  /**表示拦截所有
+                .excludePathPatterns("/v1/chat/login"); //不拦截登录的请求
         super.addInterceptors(registry);
     }
 

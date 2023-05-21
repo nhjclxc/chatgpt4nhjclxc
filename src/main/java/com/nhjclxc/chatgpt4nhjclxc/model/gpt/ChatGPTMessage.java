@@ -1,4 +1,4 @@
-package com.nhjclxc.chatgpt4nhjclxc.model;
+package com.nhjclxc.chatgpt4nhjclxc.model.gpt;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,14 +8,17 @@ import lombok.experimental.Accessors;
 
 /**
  * @author LuoXianchao
- * @since 2023/5/21 12:55
+ * @since 2023/5/21 14:25
  */
 @Data
 @Builder
 @Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class TbUser {
-    private Integer id;
-    private String name;
+public class ChatGPTMessage {
+    /*
+    {"role": "system", "content": "Hello!"}
+     */
+    private String role;
+    private String content;
 }

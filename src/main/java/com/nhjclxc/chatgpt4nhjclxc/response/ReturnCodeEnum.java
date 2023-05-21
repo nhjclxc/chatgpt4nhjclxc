@@ -21,4 +21,8 @@ public class ReturnCodeEnum {
      */
     public static final ReturnCode NOTR_EQUIRE_ERROR = new ReturnCode("20000", "未包含必填参数");
 
+    public static final ReturnCode CHATGPT_API_KEY_ERROR = new ReturnCode("20001", "redis中没有chatGPT的api key");
+
+    public static final ReturnCode CHATGPT_ERROR = new ReturnCode("20002", "ChatGPT返回错误");
+
 }

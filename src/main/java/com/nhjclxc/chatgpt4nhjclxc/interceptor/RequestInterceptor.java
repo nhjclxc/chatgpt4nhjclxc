@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.nhjclxc.chatgpt4nhjclxc.config.ApplicationConst;
 import com.nhjclxc.chatgpt4nhjclxc.config.ContextHolder;
 import com.nhjclxc.chatgpt4nhjclxc.exception.ProjectException;
-import com.nhjclxc.chatgpt4nhjclxc.model.TbUser;
+import com.nhjclxc.chatgpt4nhjclxc.model.model.TbUser;
 import com.nhjclxc.chatgpt4nhjclxc.response.ReturnCodeEnum;
 import com.nhjclxc.chatgpt4nhjclxc.utils.JWTUtils;
 import io.jsonwebtoken.Claims;
@@ -59,13 +59,13 @@ public class RequestInterceptor implements HandlerInterceptor {
             //给前端返回一个错误码code，让他发起一个刷新token的请求
             //在哪个请求里面生成新的token返回给前端，以达到在前端的localstorage更新token
             Map<String, Object> info = new HashMap<>();
-            info.put("id", claimsBody.get("id"));
+            info.put("phone", claimsBody.get("phone"));
             String newToken = JWTUtils.getToken(info);
             response.setHeader("token", newToken);
         }
 
         //将当前用户信息放到内存里面
-        String redisData = stringRedisTemplate.opsForValue().get(ApplicationConst.USER_SESSION_PREFIX + claimsBody.get("id"));
+        String redisData = stringRedisTemplate.opsForValue().get(ApplicationConst.USER_SESSION_PREFIX + claimsBody.get("phone"));
         if (redisData != null){
             ContextHolder.setUserId(JSONObject.parseObject(redisData, TbUser.class));
         }
