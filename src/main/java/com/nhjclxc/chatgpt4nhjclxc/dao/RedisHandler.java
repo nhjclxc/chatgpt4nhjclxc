@@ -3,13 +3,11 @@ package com.nhjclxc.chatgpt4nhjclxc.dao;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.nhjclxc.chatgpt4nhjclxc.config.ApplicationConst;
-import com.nhjclxc.chatgpt4nhjclxc.config.ContextHolder;
 import com.nhjclxc.chatgpt4nhjclxc.exception.ProjectException;
 import com.nhjclxc.chatgpt4nhjclxc.model.gpt.ChatGPTMessage;
-import com.nhjclxc.chatgpt4nhjclxc.model.model.TbUser;
 import com.nhjclxc.chatgpt4nhjclxc.response.ReturnCodeEnum;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +40,18 @@ public class RedisHandler {
     }
 
     public void setListValue(String key, String value) {
-        stringRedisTemplate.opsForList().leftPush(key, value);
+        if (!checkListValue(key, value)){
+            stringRedisTemplate.opsForList().leftPush(key, value);
+        }
+    }
+
+    private boolean checkListValue(String key, String value){
+        // 检测该key有没有这个value
+        List<String> range = stringRedisTemplate.opsForList().range(key, 0, -1);
+        if (CollectionUtils.isNotEmpty(range)){
+            return range.contains(value);
+        }
+        return false;
     }
 
     public List<String> getListValue(String key) {

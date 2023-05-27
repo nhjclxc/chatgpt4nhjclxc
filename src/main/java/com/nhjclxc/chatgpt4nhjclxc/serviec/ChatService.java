@@ -103,12 +103,15 @@ public class ChatService {
         Map<String, Object> info = new HashMap<>();
         info.put("phone", phone);
         String token = JWTUtils.getToken(info);
-        response.setHeader("token", token);
         TbUser tbUser = TbUser.builder().phone(phone).name("").build();
-        redisHandler.setStringValue(ApplicationConst.USER_SESSION_PREFIX + phone, JSONObject.toJSONString(tbUser));
+        redisHandler.setStringValue(ApplicationConst.USER_SESSION_PREFIX + phone, JSONObject.toJSONString(tbUser), JWTUtils.JWTTIMEOUT, JWTUtils.JWTTimeUnit);
         log.info("redis数据：" + redisHandler.getStringValue(ApplicationConst.USER_SESSION_PREFIX + phone));
 
         response.setHeader("token", token);
+        System.out.println("response.token = " + response.getHeader("token"));
+        // 跨域获取不到请求头设置
+        response.addHeader("Access-Control-Allow-Headers", "Content-Type,token");
+        response.addHeader("Access-Control-Expose-Headers","Content-Type,token");
         // 登录成功之后返回用户的聊天记录
         return redisHandler.getChatRecordListMap(phone);
     }
@@ -122,6 +125,9 @@ public class ChatService {
      * @throws ParseException
      */
     public Object chat(ChatParamDTO chatParamDTO) throws IOException, URISyntaxException, ParseException {
+        // if (true){
+        //     return ChatParamDTO.builder().content("我是返回数据" + System.currentTimeMillis()).recordSn("eb42b95813a54620bdaf1e97ae56822b").build();
+        // }
         /*
             curl https://api.openai.com/v1/chat/completions \
             -H "Content-Type: application/json" \
@@ -136,21 +142,32 @@ public class ChatService {
             return "入参为空";
         }
 
+        // 获取页面的当前聊天记录
+        String recordSn = chatParamDTO.getRecordSn();
+        List<ChatGPTMessage> chatGPTMessageList;
+        ChatGPTMessage gptMessage = ChatGPTMessage.builder().role(ApplicationConst.CHATGPT.ROLE_USER).content(userContent).build();
+        if (StringUtils.isNoneBlank(recordSn)){
+            chatGPTMessageList = redisHandler.getChatRecordHash(ContextHolder.getUser().getPhone(), recordSn);
+            chatGPTMessageList.add(gptMessage);
+        }else {
+            chatGPTMessageList = Collections.singletonList(gptMessage);
+        }
+
         // 构造请求入参
         ChatGPTParamDTO chatGPTParamDTO = ChatGPTParamDTO.builder().model(ApplicationConst.CHATGPT.MODEL)
-                .temperature(ApplicationConst.CHATGPT.TEMPERATURE).messages(
-                        Collections.singletonList(ChatGPTMessage.builder().role(ApplicationConst.CHATGPT.ROLE_USER).content(userContent).build())
-                ).build();
+                // .temperature(ApplicationConst.CHATGPT.TEMPERATURE)
+                .messages(chatGPTMessageList).build();
 
+        ChatParamDTO retChatParamDTO = null;
+        String assistantContext = null;
         // 发请求
-        String stringResponse = doRequest2GPT(chatGPTParamDTO);
+        try {
+            String stringResponse = doRequest2GPT(chatGPTParamDTO);
 
-        // 响应返回
-        ChatGPTVO chatGPTVO = JSON.parseObject(stringResponse, ChatGPTVO.class);
-        ChatGPTError error = chatGPTVO.getError();
-        ChatParamDTO retChatParamDTO;
-        String assistantContext;
-        if (!Objects.isNull(error)) {
+            // 响应返回
+            ChatGPTVO chatGPTVO = JSON.parseObject(stringResponse, ChatGPTVO.class);
+            ChatGPTError error = chatGPTVO.getError();
+            if (!Objects.isNull(error)) {
 /*请求失败
 
 {
@@ -162,8 +179,8 @@ public class ChatService {
     }
 }
 */
-            throw new ProjectException(ReturnCodeEnum.CHATGPT_ERROR, error.getMessage());
-        }else {
+                throw new ProjectException(ReturnCodeEnum.CHATGPT_ERROR, error.getMessage());
+            }else {
 /*请求成功
 {
     "id": "chatcmpl-7IXJHrvq2qQ0uu7ebAyQLxai7lite",
@@ -187,11 +204,16 @@ public class ChatService {
     ]
 }
  */
-            assistantContext = chatGPTVO.getChoices().stream().map(ChatGPTChoices::getMessage)
-                    .map(ChatGPTMessage::getContent).reduce("", String::concat);
-            // messages.add(ChatGPTMessage.builder().role(ApplicationConst.CHATGPT.ROLE_ASSISTANT).content(context).build());
+                assistantContext = chatGPTVO.getChoices().stream().map(ChatGPTChoices::getMessage)
+                        .map(ChatGPTMessage::getContent).reduce("", String::concat);
+                // messages.add(ChatGPTMessage.builder().role(ApplicationConst.CHATGPT.ROLE_ASSISTANT).content(context).build());
+                retChatParamDTO = ChatParamDTO.builder().content(assistantContext).build();
+            }
+        }catch (java.net.SocketTimeoutException e){
+            assistantContext = e.getMessage();
             retChatParamDTO = ChatParamDTO.builder().content(assistantContext).build();
         }
+
         // 数据库记录调用日志
         String s = saveChatGPTRecord(chatParamDTO.getRecordSn(), userContent, assistantContext);
         retChatParamDTO.setRecordSn(s);
